@@ -1,0 +1,22 @@
+{
+  "name": "sql-app-workers",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "db:migrate:local": "wrangler d1 execute sql-app-db --local --file=./db/schema.sql",
+    "db:migrate:remote": "wrangler d1 execute sql-app-db --remote --file=./db/schema.sql"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260812.1",
+    "typescript": "^7.0.2",
+    "wrangler": "^4.122.0"
+  },
+  "dependencies": {
+    "@simplewebauthn/server": "^13.3.2",
+    "hono": "^4.13.1"
+  }
+}

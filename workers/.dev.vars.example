@@ -1,0 +1,2 @@
+# このファイルを .dev.vars にコピーして値を設定する（.dev.vars は git 管理外）
+JWT_SECRET=change-me-to-a-long-random-string-for-local-dev

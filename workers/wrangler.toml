@@ -1,0 +1,43 @@
+name = "sql-app-api"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# ローカル開発: `wrangler dev` で Workers/D1 をエミュレーション（要件8）
+[dev]
+port = 8787
+
+[[d1_databases]]
+binding = "DB"
+database_name = "sql-app-db"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+
+[[kv_namespaces]]
+binding = "SESSIONS"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+
+[vars]
+# JWT_SECRET はここに書かず `wrangler secret put JWT_SECRET` で設定する。
+# ローカル開発では workers/.dev.vars (git管理外) に JWT_SECRET=... を置く。
+ENVIRONMENT = "development"
+RP_ID = "localhost"
+RP_NAME = "SQL学習アプリ"
+RP_ORIGIN = "http://localhost:5173"
+
+[env.production]
+name = "sql-app-api-production"
+
+[env.production.vars]
+ENVIRONMENT = "production"
+RP_ID = "example.com"
+RP_NAME = "SQL学習アプリ"
+RP_ORIGIN = "https://example.com"
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "sql-app-db-production"
+database_id = "REPLACE_WITH_PRODUCTION_D1_DATABASE_ID"
+
+[[env.production.kv_namespaces]]
+binding = "SESSIONS"
+id = "REPLACE_WITH_PRODUCTION_KV_NAMESPACE_ID"

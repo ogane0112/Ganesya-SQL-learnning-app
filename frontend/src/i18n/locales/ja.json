@@ -1,0 +1,15 @@
+{
+  "app": {
+    "name": "SQL学習アプリ"
+  },
+  "nav": {
+    "problems": "問題一覧",
+    "login": "ログイン",
+    "logout": "ログアウト"
+  },
+  "common": {
+    "run": "実行",
+    "correct": "正解です！",
+    "incorrect": "不正解です。もう一度試してみましょう。"
+  }
+}
