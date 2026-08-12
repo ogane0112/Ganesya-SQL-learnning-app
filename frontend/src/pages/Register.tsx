@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import { ApiError } from "../lib/api";
 
 export default function Register() {
   const { register, registerPasskey, passkeySupported } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -17,7 +19,7 @@ export default function Register() {
     e.preventDefault();
     setError(null);
     if (password.length < 8) {
-      setError("パスワードは8文字以上で入力してください。");
+      setError(t("register.passwordTooShort"));
       return;
     }
     setSubmitting(true);
@@ -25,9 +27,7 @@ export default function Register() {
       await register(email, password);
       setRegistered(true);
     } catch (err) {
-      setError(
-        err instanceof ApiError ? err.message : "登録に失敗しました。",
-      );
+      setError(err instanceof ApiError ? err.message : t("register.errorGeneric"));
     } finally {
       setSubmitting(false);
     }
@@ -37,31 +37,25 @@ export default function Register() {
     setPasskeyMessage(null);
     try {
       await registerPasskey();
-      setPasskeyMessage("パスキーを登録しました。");
+      setPasskeyMessage(t("register.passkeySuccess"));
     } catch {
-      setPasskeyMessage(
-        "パスキーの登録に失敗またはキャンセルされました。後で設定から再度登録できます。",
-      );
+      setPasskeyMessage(t("register.passkeyError"));
     }
   };
 
   if (registered) {
     return (
       <div className="mx-auto max-w-sm p-6">
-        <h1 className="text-xl font-bold">登録が完了しました</h1>
-        <p className="mt-2 text-sm text-slate-600">
-          次回以降はID・パスワードでログインできます。
-        </p>
+        <h1 className="text-xl font-bold">{t("register.completeTitle")}</h1>
+        <p className="mt-2 text-sm text-slate-600">{t("register.completeHint")}</p>
         {passkeySupported && (
           <div className="mt-4 rounded-lg border border-slate-200 p-4">
-            <p className="text-sm text-slate-700">
-              このデバイスではパスキー（生体認証等）でのログインも利用できます。
-            </p>
+            <p className="text-sm text-slate-700">{t("register.passkeyPrompt")}</p>
             <button
               onClick={handleAddPasskey}
               className="mt-2 min-h-[44px] w-full rounded-lg border border-blue-400 bg-blue-50 px-4 py-2 font-medium text-blue-700 hover:bg-blue-100"
             >
-              🔐 パスキーを追加登録する
+              {t("register.addPasskeyButton")}
             </button>
             {passkeyMessage && (
               <p className="mt-2 text-sm text-slate-600">{passkeyMessage}</p>
@@ -72,7 +66,7 @@ export default function Register() {
           onClick={() => navigate("/problems")}
           className="mt-4 min-h-[44px] w-full rounded-lg bg-blue-600 px-4 py-2 font-medium text-white"
         >
-          学習をはじめる
+          {t("register.startLearning")}
         </button>
       </div>
     );
@@ -80,13 +74,14 @@ export default function Register() {
 
   return (
     <div className="mx-auto max-w-sm p-6">
-      <h1 className="text-xl font-bold">新規登録</h1>
+      <h1 className="text-xl font-bold">{t("register.title")}</h1>
       <form onSubmit={handleSubmit} className="mt-4 space-y-3">
         <div>
-          <label className="block text-sm font-medium text-slate-700">
-            メールアドレス
+          <label htmlFor="register-email" className="block text-sm font-medium text-slate-700">
+            {t("register.emailLabel")}
           </label>
           <input
+            id="register-email"
             type="email"
             required
             autoComplete="username"
@@ -96,10 +91,11 @@ export default function Register() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700">
-            パスワード（8文字以上）
+          <label htmlFor="register-password" className="block text-sm font-medium text-slate-700">
+            {t("register.passwordLabel")}
           </label>
           <input
+            id="register-password"
             type="password"
             required
             minLength={8}
@@ -115,13 +111,13 @@ export default function Register() {
           disabled={submitting}
           className="min-h-[44px] w-full rounded-lg bg-blue-600 px-4 py-2 font-medium text-white disabled:opacity-50"
         >
-          登録する
+          {t("register.submit")}
         </button>
       </form>
       <p className="mt-4 text-sm text-slate-600">
-        すでにアカウントをお持ちの方は{" "}
+        {t("register.haveAccount")}{" "}
         <Link to="/login" className="text-blue-600 underline">
-          ログイン
+          {t("register.loginLink")}
         </Link>
       </p>
     </div>

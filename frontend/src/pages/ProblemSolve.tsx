@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import type { Database } from "sql.js";
 import { getProblemById } from "../data/problems";
 import {
@@ -11,6 +12,7 @@ import {
 } from "../lib/sqlEngine";
 import type { ProgressEntry, QueryResultSet } from "../types/problem";
 import { recordProgress } from "../lib/progress";
+import { useLocale } from "../lib/useLocale";
 import { SqlEditor } from "../components/SqlEditor";
 import { ResultTable } from "../components/ResultTable";
 
@@ -21,10 +23,13 @@ const INCORRECT_ATTEMPTS_BEFORE_EXPLANATION = 3;
 export default function ProblemSolve() {
   const { id } = useParams<{ id: string }>();
   const problem = id ? getProblemById(id) : undefined;
+  const { t } = useTranslation();
+  const locale = useLocale();
+  const content = problem?.content[locale];
 
   const [db, setDb] = useState<Database | null>(null);
   const [dbError, setDbError] = useState<string | null>(null);
-  const [sqlText, setSqlText] = useState(problem?.sampleAnswer ? "" : "");
+  const [sqlText, setSqlText] = useState("");
   const [result, setResult] = useState<QueryResultSet | null>(null);
   const [runError, setRunError] = useState<string | null>(null);
   const [status, setStatus] = useState<"idle" | "correct" | "incorrect">(
@@ -47,8 +52,8 @@ export default function ProblemSolve() {
     setRevealedHints(0);
     setShowExplanation(false);
     setSqlText("");
-    if (!problem) return;
-    createProblemDatabase(problem.schemaSql, problem.seedSql)
+    if (!problem || !content) return;
+    createProblemDatabase(problem.schemaSql, content.seedSql)
       .then((database) => {
         if (!cancelled) setDb(database);
       })
@@ -58,7 +63,9 @@ export default function ProblemSolve() {
     return () => {
       cancelled = true;
     };
-  }, [problem]);
+    // Re-seed with locale-appropriate data when the language changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [problem, locale]);
 
   useEffect(() => {
     return () => {
@@ -72,12 +79,12 @@ export default function ProblemSolve() {
     return Object.fromEntries(info.map((t) => [t.table, t.columns]));
   }, [db]);
 
-  if (!problem) {
+  if (!problem || !content) {
     return (
       <div className="p-6">
-        <p>問題が見つかりませんでした。</p>
+        <p>{t("problemSolve.notFound")}</p>
         <Link to="/problems" className="text-blue-600 underline">
-          問題一覧に戻る
+          {t("problemSolve.backToList")}
         </Link>
       </div>
     );
@@ -87,13 +94,13 @@ export default function ProblemSolve() {
     if (!db) return;
     // Reset to a fresh DB state per run so repeated INSERT/UPDATE attempts
     // are judged against the original seed data each time.
-    createProblemDatabase(problem.schemaSql, problem.seedSql)
+    createProblemDatabase(problem.schemaSql, content.seedSql)
       .then(async (freshDb) => {
         try {
           const res = runQuery(freshDb, sqlText);
           setRunError(null);
           setResult(res);
-          const correct = isResultCorrect(res, problem.expectedResult);
+          const correct = isResultCorrect(res, content.expectedResult);
           setStatus(correct ? "correct" : "incorrect");
           if (!correct) {
             setIncorrectCount((c) => c + 1);
@@ -110,7 +117,7 @@ export default function ProblemSolve() {
           setRunError(
             err instanceof SqlExecutionError
               ? err.message
-              : "予期しないエラーが発生しました。",
+              : t("problemSolve.unexpectedError"),
           );
         } finally {
           freshDb.close();
@@ -130,11 +137,11 @@ export default function ProblemSolve() {
     <div className="mx-auto flex h-full max-w-6xl flex-col gap-4 p-4">
       <div>
         <Link to="/problems" className="text-sm text-blue-600 underline">
-          ← 問題一覧
+          {t("problemSolve.backToList")}
         </Link>
-        <h1 className="mt-1 text-xl font-bold">{problem.title}</h1>
+        <h1 className="mt-1 text-xl font-bold">{content.title}</h1>
         <p className="mt-1 whitespace-pre-wrap text-slate-700">
-          {problem.description}
+          {content.description}
         </p>
       </div>
 
@@ -146,9 +153,9 @@ export default function ProblemSolve() {
       <div className="flex gap-1 md:hidden" role="tablist">
         {(
           [
-            ["editor", "エディタ"],
-            ["result", "結果"],
-            ["schema", "テーブル定義"],
+            ["editor", t("problemSolve.tabs.editor")],
+            ["result", t("problemSolve.tabs.result")],
+            ["schema", t("problemSolve.tabs.schema")],
           ] as [MobileTab, string][]
         ).map(([tab, label]) => (
           <button
@@ -172,13 +179,15 @@ export default function ProblemSolve() {
           className={`min-h-[300px] flex-col md:flex ${activeTab === "editor" ? "flex" : "hidden md:flex"}`}
         >
           <div className="flex items-center justify-between pb-2">
-            <h2 className="font-semibold text-slate-700">SQLエディタ</h2>
+            <h2 className="font-semibold text-slate-700">
+              {t("problemSolve.editorHeading")}
+            </h2>
             <button
               onClick={handleRun}
               disabled={!db}
               className="min-h-[44px] rounded bg-blue-600 px-4 py-2 font-medium text-white shadow disabled:opacity-50"
             >
-              実行 (Ctrl/Cmd+Enter)
+              {t("problemSolve.run")}
             </button>
           </div>
           <div className="min-h-0 flex-1">
@@ -190,7 +199,9 @@ export default function ProblemSolve() {
           ref={resultPaneRef}
           className={`min-h-[300px] flex-col md:flex ${activeTab === "result" ? "flex" : "hidden md:flex"}`}
         >
-          <h2 className="pb-2 font-semibold text-slate-700">実行結果</h2>
+          <h2 className="pb-2 font-semibold text-slate-700">
+            {t("problemSolve.resultHeading")}
+          </h2>
           {status !== "idle" && (
             <div
               className={`mb-2 rounded p-3 font-medium ${
@@ -199,7 +210,9 @@ export default function ProblemSolve() {
                   : "bg-amber-50 text-amber-700"
               }`}
             >
-              {status === "correct" ? "✅ 正解です！" : "❌ 不正解です。もう一度試してみましょう。"}
+              {status === "correct"
+                ? t("problemSolve.correct")
+                : t("problemSolve.incorrect")}
             </div>
           )}
           {runError && (
@@ -212,10 +225,9 @@ export default function ProblemSolve() {
           </div>
 
           <HintsAndExplanation
-            problemId={problem.id}
-            hints={problem.hints}
-            explanation={problem.explanation}
-            sampleAnswer={problem.sampleAnswer}
+            hints={content.hints}
+            explanation={content.explanation}
+            sampleAnswer={content.sampleAnswer}
             revealedHints={revealedHints}
             onRevealHint={() => setRevealedHints((n) => n + 1)}
             showExplanation={showExplanation}
@@ -227,7 +239,9 @@ export default function ProblemSolve() {
         <section
           className={`min-h-[200px] flex-col md:flex ${activeTab === "schema" ? "flex" : "hidden md:flex"}`}
         >
-          <h2 className="pb-2 font-semibold text-slate-700">テーブル定義</h2>
+          <h2 className="pb-2 font-semibold text-slate-700">
+            {t("problemSolve.schemaHeading")}
+          </h2>
           <pre className="min-h-0 flex-1 overflow-auto rounded border border-slate-300 bg-white p-3 text-xs">
             {problem.schemaSql.trim()}
           </pre>
@@ -247,7 +261,6 @@ function HintsAndExplanation({
   onShowExplanation,
   suggestExplanation,
 }: {
-  problemId: string;
   hints: string[];
   explanation: string;
   sampleAnswer: string;
@@ -257,18 +270,22 @@ function HintsAndExplanation({
   onShowExplanation: () => void;
   suggestExplanation: boolean;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="mt-3 border-t border-slate-200 pt-3">
       <div className="flex flex-wrap items-center gap-2">
         <h3 className="text-sm font-semibold text-slate-700">
-          ヒント ({revealedHints}/{hints.length})
+          {t("problemSolve.hints.heading", {
+            revealed: revealedHints,
+            total: hints.length,
+          })}
         </h3>
         {revealedHints < hints.length && (
           <button
             onClick={onRevealHint}
             className="min-h-[36px] rounded border border-blue-300 px-3 text-sm text-blue-700 hover:bg-blue-50"
           >
-            次のヒントを見る
+            {t("problemSolve.hints.next")}
           </button>
         )}
         {!showExplanation && (
@@ -280,7 +297,7 @@ function HintsAndExplanation({
                 : "border border-slate-300 text-slate-600 hover:bg-slate-50"
             }`}
           >
-            答え・解説を見る
+            {t("problemSolve.hints.showAnswer")}
           </button>
         )}
       </div>
@@ -295,7 +312,9 @@ function HintsAndExplanation({
         <div className="mt-2 space-y-2 rounded bg-slate-50 p-3 text-sm">
           <p className="whitespace-pre-wrap text-slate-700">{explanation}</p>
           <div>
-            <p className="mb-1 font-medium text-slate-600">模範解答:</p>
+            <p className="mb-1 font-medium text-slate-600">
+              {t("problemSolve.hints.sampleAnswerLabel")}
+            </p>
             <pre className="overflow-auto rounded bg-slate-800 p-2 text-xs text-slate-100">
               {sampleAnswer}
             </pre>

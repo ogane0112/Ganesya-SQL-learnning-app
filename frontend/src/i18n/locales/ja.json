@@ -7,9 +7,84 @@
     "login": "ログイン",
     "logout": "ログアウト"
   },
-  "common": {
-    "run": "実行",
-    "correct": "正解です！",
-    "incorrect": "不正解です。もう一度試してみましょう。"
+  "language": {
+    "label": "言語",
+    "ja": "日本語",
+    "en": "English"
+  },
+  "home": {
+    "title": "SQL学習アプリ",
+    "description": "ブラウザ上でSQLを書いて、その場で実行しながら学べます。入力したSQLはあなたのブラウザ内だけで実行され、サーバーには送信されません。",
+    "cta": "問題を解いてみる"
+  },
+  "problemList": {
+    "title": "問題一覧",
+    "solvedCount": "{{solved}} / {{total}} 問 正解済み",
+    "difficulty": "難易度",
+    "status": {
+      "not_started": "未着手",
+      "correct": "正解",
+      "incorrect": "不正解"
+    }
+  },
+  "problemSolve": {
+    "backToList": "← 問題一覧",
+    "notFound": "問題が見つかりませんでした。",
+    "editorHeading": "SQLエディタ",
+    "run": "実行 (Ctrl/Cmd+Enter)",
+    "resultHeading": "実行結果",
+    "schemaHeading": "テーブル定義",
+    "correct": "✅ 正解です！",
+    "incorrect": "❌ 不正解です。もう一度試してみましょう。",
+    "unexpectedError": "予期しないエラーが発生しました。",
+    "tabs": {
+      "editor": "エディタ",
+      "result": "結果",
+      "schema": "テーブル定義"
+    },
+    "hints": {
+      "heading": "ヒント ({{revealed}}/{{total}})",
+      "next": "次のヒントを見る",
+      "showAnswer": "答え・解説を見る",
+      "sampleAnswerLabel": "模範解答:"
+    }
+  },
+  "sqlEngine": {
+    "emptyInput": "SQLが入力されていません。",
+    "initError": "問題データの初期化に失敗しました: {{message}}"
+  },
+  "resultTable": {
+    "placeholder": "SQLを実行すると、ここに結果が表示されます。",
+    "noResultSet": "実行しましたが、返却された結果セットはありません（INSERT/UPDATE/DELETE等）。",
+    "zeroRows": "0件でした。"
+  },
+  "login": {
+    "title": "ログイン",
+    "passkeyButton": "🔐 パスキーでログイン",
+    "emailLabel": "メールアドレス",
+    "passwordLabel": "パスワード",
+    "submit": "ログイン",
+    "errorGeneric": "ログインに失敗しました。",
+    "passkeyError": "パスキーでのログインに失敗またはキャンセルされました。ID・パスワードでログインしてください。",
+    "noAccount": "アカウントをお持ちでない方は",
+    "registerLink": "新規登録",
+    "continueWithoutLogin": "ログインせずに学習を続ける"
+  },
+  "register": {
+    "title": "新規登録",
+    "emailLabel": "メールアドレス",
+    "passwordLabel": "パスワード（8文字以上）",
+    "passwordTooShort": "パスワードは8文字以上で入力してください。",
+    "submit": "登録する",
+    "errorGeneric": "登録に失敗しました。",
+    "completeTitle": "登録が完了しました",
+    "completeHint": "次回以降はID・パスワードでログインできます。",
+    "passkeyPrompt": "このデバイスではパスキー（生体認証等）でのログインも利用できます。",
+    "addPasskeyButton": "🔐 パスキーを追加登録する",
+    "passkeySuccess": "パスキーを登録しました。",
+    "passkeyError": "パスキーの登録に失敗またはキャンセルされました。後で設定から再度登録できます。",
+    "startLearning": "学習をはじめる",
+    "haveAccount": "すでにアカウントをお持ちの方は",
+    "loginLink": "ログイン"
   }
 }

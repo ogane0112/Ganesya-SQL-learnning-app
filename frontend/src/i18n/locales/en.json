@@ -1,0 +1,90 @@
+{
+  "app": {
+    "name": "SQL Learning App"
+  },
+  "nav": {
+    "problems": "Problems",
+    "login": "Log in",
+    "logout": "Log out"
+  },
+  "language": {
+    "label": "Language",
+    "ja": "日本語",
+    "en": "English"
+  },
+  "home": {
+    "title": "SQL Learning App",
+    "description": "Write real SQL in your browser and run it instantly. Your SQL runs entirely on your own device — nothing is ever sent to a server.",
+    "cta": "Start solving problems"
+  },
+  "problemList": {
+    "title": "Problems",
+    "solvedCount": "{{solved}} / {{total}} solved",
+    "difficulty": "Difficulty",
+    "status": {
+      "not_started": "Not started",
+      "correct": "Correct",
+      "incorrect": "Incorrect"
+    }
+  },
+  "problemSolve": {
+    "backToList": "← Problem list",
+    "notFound": "Problem not found.",
+    "editorHeading": "SQL Editor",
+    "run": "Run (Ctrl/Cmd+Enter)",
+    "resultHeading": "Result",
+    "schemaHeading": "Table schema",
+    "correct": "✅ Correct!",
+    "incorrect": "❌ Not quite right. Give it another try.",
+    "unexpectedError": "An unexpected error occurred.",
+    "tabs": {
+      "editor": "Editor",
+      "result": "Result",
+      "schema": "Schema"
+    },
+    "hints": {
+      "heading": "Hints ({{revealed}}/{{total}})",
+      "next": "Show next hint",
+      "showAnswer": "Show answer & explanation",
+      "sampleAnswerLabel": "Sample answer:"
+    }
+  },
+  "sqlEngine": {
+    "emptyInput": "Please enter a SQL statement.",
+    "initError": "Failed to initialize the problem data: {{message}}"
+  },
+  "resultTable": {
+    "placeholder": "Run your SQL to see the result here.",
+    "noResultSet": "Executed successfully, but this statement doesn't return a result set (INSERT/UPDATE/DELETE, etc.).",
+    "zeroRows": "0 rows."
+  },
+  "login": {
+    "title": "Log in",
+    "passkeyButton": "🔐 Log in with a passkey",
+    "emailLabel": "Email address",
+    "passwordLabel": "Password",
+    "submit": "Log in",
+    "errorGeneric": "Login failed.",
+    "passkeyError": "Passkey sign-in failed or was cancelled. Please log in with your email and password instead.",
+    "noAccount": "Don't have an account?",
+    "registerLink": "Sign up",
+    "continueWithoutLogin": "Continue without logging in"
+  },
+  "register": {
+    "title": "Sign up",
+    "emailLabel": "Email address",
+    "passwordLabel": "Password (8+ characters)",
+    "passwordTooShort": "Password must be at least 8 characters.",
+    "submit": "Sign up",
+    "errorGeneric": "Registration failed.",
+    "completeTitle": "Registration complete",
+    "completeHint": "From now on, you can log in with your email and password.",
+    "passkeyPrompt": "This device also supports passkey sign-in (e.g. biometrics).",
+    "addPasskeyButton": "🔐 Add a passkey",
+    "passkeySuccess": "Passkey registered.",
+    "passkeyError": "Passkey registration failed or was cancelled. You can try again later from settings.",
+    "startLearning": "Start learning",
+    "haveAccount": "Already have an account?",
+    "loginLink": "Log in"
+  }
+}

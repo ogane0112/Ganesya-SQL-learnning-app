@@ -1,14 +1,20 @@
 import initSqlJs, { type Database, type SqlJsStatic } from "sql.js";
+import i18n from "../i18n";
 import type { QueryResultSet } from "../types/problem";
 
 let sqlJsPromise: Promise<SqlJsStatic> | undefined;
 
 function loadSqlJs(): Promise<SqlJsStatic> {
   if (!sqlJsPromise) {
-    sqlJsPromise = initSqlJs({
-      // Served from /public/sql-wasm.wasm (copied from node_modules/sql.js/dist)
-      locateFile: (file: string) => `${import.meta.env.BASE_URL}${file}`,
-    });
+    sqlJsPromise = initSqlJs(
+      // In the browser, the wasm binary is served from /public (copied from
+      // node_modules/sql.js/dist). Under Vitest, `window` exists (jsdom) but
+      // there's no dev server, so omit locateFile and let sql.js fall back
+      // to its own fs-relative default resolution instead.
+      import.meta.env.VITEST
+        ? undefined
+        : { locateFile: (file: string) => `${import.meta.env.BASE_URL}${file}` },
+    );
   }
   return sqlJsPromise;
 }
@@ -34,7 +40,7 @@ export async function createProblemDatabase(
   } catch (err) {
     db.close();
     throw new SqlExecutionError(
-      `問題データの初期化に失敗しました: ${(err as Error).message}`,
+      i18n.t("sqlEngine.initError", { message: (err as Error).message }),
     );
   }
   return db;
@@ -47,7 +53,7 @@ export async function createProblemDatabase(
  */
 export function runQuery(db: Database, sql: string): QueryResultSet {
   if (!sql.trim()) {
-    throw new SqlExecutionError("SQLが入力されていません。");
+    throw new SqlExecutionError(i18n.t("sqlEngine.emptyInput"));
   }
   try {
     const results = db.exec(sql);

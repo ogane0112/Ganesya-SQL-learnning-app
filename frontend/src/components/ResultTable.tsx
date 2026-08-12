@@ -1,19 +1,14 @@
+import { useTranslation } from "react-i18next";
 import type { QueryResultSet } from "../types/problem";
 
 export function ResultTable({ result }: { result: QueryResultSet | null }) {
+  const { t } = useTranslation();
+
   if (!result) {
-    return (
-      <p className="p-4 text-sm text-slate-500">
-        SQLを実行すると、ここに結果が表示されます。
-      </p>
-    );
+    return <p className="p-4 text-sm text-slate-500">{t("resultTable.placeholder")}</p>;
   }
   if (result.columns.length === 0) {
-    return (
-      <p className="p-4 text-sm text-slate-500">
-        実行しましたが、返却された結果セットはありません（INSERT/UPDATE/DELETE等）。
-      </p>
-    );
+    return <p className="p-4 text-sm text-slate-500">{t("resultTable.noResultSet")}</p>;
   }
   return (
     <div className="h-full overflow-auto">
@@ -47,7 +42,7 @@ export function ResultTable({ result }: { result: QueryResultSet | null }) {
         </tbody>
       </table>
       {result.rows.length === 0 && (
-        <p className="p-4 text-sm text-slate-500">0件でした。</p>
+        <p className="p-4 text-sm text-slate-500">{t("resultTable.zeroRows")}</p>
       )}
     </div>
   );

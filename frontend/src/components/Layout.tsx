@@ -1,19 +1,23 @@
 import { Link, Outlet } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 
 export function Layout() {
   const { user, logout, loading } = useAuth();
+  const { t } = useTranslation();
 
   return (
     <div className="flex h-screen flex-col">
       <header className="flex h-14 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4">
         <Link to="/" className="font-bold text-slate-800">
-          SQL学習アプリ
+          {t("app.name")}
         </Link>
         <nav className="flex items-center gap-3 text-sm">
           <Link to="/problems" className="text-slate-600 hover:text-slate-900">
-            問題一覧
+            {t("nav.problems")}
           </Link>
+          <LanguageSwitcher />
           {!loading && (
             user ? (
               <>
@@ -24,7 +28,7 @@ export function Layout() {
                   onClick={logout}
                   className="min-h-[44px] rounded px-3 text-slate-600 hover:bg-slate-100"
                 >
-                  ログアウト
+                  {t("nav.logout")}
                 </button>
               </>
             ) : (
@@ -32,7 +36,7 @@ export function Layout() {
                 to="/login"
                 className="min-h-[44px] rounded px-3 py-2 text-blue-600 hover:bg-blue-50"
               >
-                ログイン
+                {t("nav.login")}
               </Link>
             )
           )}

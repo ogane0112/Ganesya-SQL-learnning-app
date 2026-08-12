@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import { ApiError } from "../lib/api";
 
@@ -10,6 +11,7 @@ import { ApiError } from "../lib/api";
 export default function Login() {
   const { login, loginWithPasskey, passkeySupported } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -23,9 +25,7 @@ export default function Login() {
       await login(email, password);
       navigate("/problems");
     } catch (err) {
-      setError(
-        err instanceof ApiError ? err.message : "ログインに失敗しました。",
-      );
+      setError(err instanceof ApiError ? err.message : t("login.errorGeneric"));
     } finally {
       setSubmitting(false);
     }
@@ -38,31 +38,30 @@ export default function Login() {
       navigate("/problems");
     } catch {
       // 途中失敗時は自動的にID+パスワード入力フォームへフォールバック（既に表示中のため何もしない）
-      setError(
-        "パスキーでのログインに失敗またはキャンセルされました。ID・パスワードでログインしてください。",
-      );
+      setError(t("login.passkeyError"));
     }
   };
 
   return (
     <div className="mx-auto max-w-sm p-6">
-      <h1 className="text-xl font-bold">ログイン</h1>
+      <h1 className="text-xl font-bold">{t("login.title")}</h1>
 
       {passkeySupported && (
         <button
           onClick={handlePasskeyLogin}
           className="mt-4 min-h-[44px] w-full rounded-lg border border-blue-400 bg-blue-50 px-4 py-2 font-medium text-blue-700 hover:bg-blue-100"
         >
-          🔐 パスキーでログイン
+          {t("login.passkeyButton")}
         </button>
       )}
 
       <form onSubmit={handleSubmit} className="mt-4 space-y-3">
         <div>
-          <label className="block text-sm font-medium text-slate-700">
-            メールアドレス
+          <label htmlFor="login-email" className="block text-sm font-medium text-slate-700">
+            {t("login.emailLabel")}
           </label>
           <input
+            id="login-email"
             type="email"
             required
             autoComplete="username webauthn"
@@ -72,10 +71,11 @@ export default function Login() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700">
-            パスワード
+          <label htmlFor="login-password" className="block text-sm font-medium text-slate-700">
+            {t("login.passwordLabel")}
           </label>
           <input
+            id="login-password"
             type="password"
             required
             autoComplete="current-password"
@@ -90,19 +90,19 @@ export default function Login() {
           disabled={submitting}
           className="min-h-[44px] w-full rounded-lg bg-blue-600 px-4 py-2 font-medium text-white disabled:opacity-50"
         >
-          ログイン
+          {t("login.submit")}
         </button>
       </form>
 
       <p className="mt-4 text-sm text-slate-600">
-        アカウントをお持ちでない方は{" "}
+        {t("login.noAccount")}{" "}
         <Link to="/register" className="text-blue-600 underline">
-          新規登録
+          {t("login.registerLink")}
         </Link>
       </p>
       <p className="mt-2 text-sm">
         <Link to="/problems" className="text-slate-500 underline">
-          ログインせずに学習を続ける
+          {t("login.continueWithoutLogin")}
         </Link>
       </p>
     </div>

@@ -83,10 +83,44 @@ npx wrangler pages deploy dist --project-name sql-app
 - [x] ID/パスワード認証、パスキー（WebAuthn）登録・ログイン
 - [x] ログイン状態に応じた進捗保存（D1）／ゲスト進捗（localStorage）とログイン時マイグレーション
 - [x] レスポンシブ対応（モバイルはタブ切替UI + SQL入力支援ツールバー）
+- [x] 多言語対応（日本語・英語、UI文言と問題データ双方を翻訳、言語切替UIあり）
+- [x] 自動テスト（フロントエンド: Vitest、バックエンド: Vitest + Workers実行環境）
 - [ ] 管理画面（要件9.2の通りMVPでは対象外、`docs/requirements.md`参照）
-- [ ] 多言語対応（i18n基盤のみ導入、翻訳は日本語のみ）
+
+## 多言語対応（i18n）
+
+- UI文言は `react-i18next` で管理し、`frontend/src/i18n/locales/{ja,en}.json` に集約しています。
+- 問題データ（`frontend/src/data/problems.ts`）は `content.ja` / `content.en` に
+  タイトル・説明・ヒント・解説に加えて、**シード データと期待結果もロケールごとに**保持しています
+  （部署名などの文字列リテラルが説明文・模範解答と一致している必要があるため）。
+  テーブル定義（`schemaSql`）と難易度はロケール非依存で共有します。
+- 初期言語は 「localStorageに保存済みの選択」→「ブラウザの言語」→「日本語」の優先順で決定し、
+  ヘッダーの言語切替UIで変更した選択は `localStorage`（`sql-app:locale`）に永続化されます。
+- 進捗（`progress`テーブル）は `problemId` で紐づくため、言語を切り替えても同じ問題の
+  正誤状況は保持されます（バックエンド側の変更は不要）。
+- 新しい言語を追加する場合: (1) `i18n/locales/<lang>.json` を追加、(2) `i18n/index.ts` の
+  `SUPPORTED_LOCALES` に追加、(3) `data/problems.ts` の各問題の `content` に該当ロケールを追加、
+  の3ステップです。
 
 ## テスト
 
-現時点では自動テストは未整備です。`docs/requirements.md` 11章の開発プロセスに従い、
-今後 `docs/test-spec.md`（単体・結合テスト仕様書）を作成の上でテストを追加してください。
+```bash
+# フロントエンド（Vitest + Testing Library、sql.jsを使った実DB実行を含む）
+cd frontend
+npm test
+
+# バックエンド（Vitest + @cloudflare/vitest-pool-workers、実際のD1/KVバインディング上で実行）
+cd workers
+npm test
+```
+
+- フロントエンド: `sqlEngine`（SQL実行・正誤判定）、`guestProgress`（localStorage）、
+  各ページ（ログイン/登録/問題一覧/問題演習/言語切替）のコンポーネントテストを含みます。
+  CodeMirrorエディタ自体はjsdomの文字計測API非対応のためテスト対象から意図的に外し
+  （`ProblemSolve.test.tsx`内でモックに置換）、動作は手動のブラウザ確認で担保しています。
+- バックエンド: パスワードハッシュ化・JWT発行検証の単体テストに加え、
+  実際のWorkers実行環境・D1・KVバインディング上で `/auth/*` `/progress/*` `/webauthn/*`
+  の各エンドポイントを検証する結合テストを含みます。特にゲスト進捗マージ（要件9.6）の
+  マージルール（正解優先・新しい方優先）は複数シナリオでカバーしています。
+- `docs/requirements.md` 11章のテスト区分（単体／結合）に沿って、上記が最低限のカバレッジです。
+  総合テスト（E2Eブラウザ操作）は未整備のため、UI変更時は手動でのブラウザ確認を推奨します。
