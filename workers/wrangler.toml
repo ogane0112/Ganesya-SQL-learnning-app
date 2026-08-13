@@ -10,34 +10,19 @@ port = 8787
 [[d1_databases]]
 binding = "DB"
 database_name = "sql-app-db"
-database_id = "REPLACE_WITH_D1_DATABASE_ID"
+database_id = "5ec084df-00c8-473a-ad6a-56a94281c093"
 
 [[kv_namespaces]]
 binding = "SESSIONS"
-id = "REPLACE_WITH_KV_NAMESPACE_ID"
+id = "1f95dd096ef44d86859dd6a4d0c43d3c"
 
 [vars]
 # JWT_SECRET はここに書かず `wrangler secret put JWT_SECRET` で設定する。
 # ローカル開発では workers/.dev.vars (git管理外) に JWT_SECRET=... を置く。
+# Cloudflareダッシュボードでデプロイする場合は Settings > Variables and Secrets で設定する。
 ENVIRONMENT = "development"
+# RP_ID / RP_ORIGIN は本番公開時、実際にアクセスするドメインに必ず合わせて変更すること
+# （WebAuthnはRP ID/Originの不一致があるとパスキーが一切機能しない）。
 RP_ID = "localhost"
 RP_NAME = "SQL学習アプリ"
 RP_ORIGIN = "http://localhost:5173"
-
-[env.production]
-name = "sql-app-api-production"
-
-[env.production.vars]
-ENVIRONMENT = "production"
-RP_ID = "example.com"
-RP_NAME = "SQL学習アプリ"
-RP_ORIGIN = "https://example.com"
-
-[[env.production.d1_databases]]
-binding = "DB"
-database_name = "sql-app-db-production"
-database_id = "REPLACE_WITH_PRODUCTION_D1_DATABASE_ID"
-
-[[env.production.kv_namespaces]]
-binding = "SESSIONS"
-id = "REPLACE_WITH_PRODUCTION_KV_NAMESPACE_ID"

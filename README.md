@@ -44,13 +44,16 @@ npm run db:migrate:local
 npm run dev             # http://localhost:8787 (wrangler dev)
 ```
 
-初回はローカルD1データベースを作成してください:
+D1データベース（`sql-app-db`）とKVネームスペース（`sql-app-sessions`）は既に
+Cloudflareアカウント上に作成済みで、`wrangler.toml` にその実IDが設定されています
+（スキーマも適用済み）。別アカウントで作り直す場合のみ、以下で作成し直してください:
 
 ```bash
 npx wrangler d1 create sql-app-db
 # 出力される database_id を wrangler.toml の [[d1_databases]] に設定
 npx wrangler kv namespace create SESSIONS
 # 出力される id を wrangler.toml の [[kv_namespaces]] に設定
+npm run db:migrate:remote
 ```
 
 両方を起動した状態でフロントエンド (`npm run dev`) にアクセスすると、
@@ -58,22 +61,41 @@ npx wrangler kv namespace create SESSIONS
 
 ## デプロイ
 
+このリポジトリはCloudflareダッシュボードのGit連携での自動デプロイを想定しています
+（要件定義書8章）。
+
+### Workers（API）— ダッシュボード連携
+
+1. Cloudflareダッシュボード → Workers & Pages → 「Import a repository」からこのGitHubリポジトリを接続
+2. ルートディレクトリを `workers` に設定（モノレポのため）
+3. ビルド設定は不要（`wrangler.toml` がそのまま使われる）。デプロイコマンドは `npx wrangler deploy`
+4. Settings > Variables and Secrets で `JWT_SECRET` をシークレットとして設定
+5. デプロイ完了後に割り当てられたURL（`https://sql-app-api.<subdomain>.workers.dev` 等）を確認し、
+   `wrangler.toml` の `RP_ID` / `RP_ORIGIN` をそのドメインに合わせて更新・再デプロイ
+   （WebAuthnはRP ID/Originの不一致があるとパスキーが一切機能しないため必須）
+
+### Pages（フロントエンド）— ダッシュボード連携
+
+1. Cloudflareダッシュボード → Workers & Pages → 「Create a project」→ 「Connect to Git」でこのリポジトリを接続
+2. ルートディレクトリを `frontend` に設定
+3. ビルドコマンド: `npm run build` / ビルド出力ディレクトリ: `dist`
+4. 環境変数 `VITE_API_BASE_URL` に、上記でデプロイしたWorkersのURLを設定
+
+以降は両プロジェクトともmainブランチへのpushで自動デプロイされます。
+
+CLIから手動デプロイする場合（`CLOUDFLARE_API_TOKEN` でログイン済みであること）:
+
 ```bash
 # Workers
 cd workers
-npx wrangler secret put JWT_SECRET --env production
-npm run db:migrate:remote
-npx wrangler deploy --env production
+npx wrangler secret put JWT_SECRET
+npx wrangler deploy
 
 # Pages（frontend）
 cd frontend
 npm run build
 npx wrangler pages deploy dist --project-name sql-app
 ```
-
-本番デプロイ時は `wrangler.toml` の `RP_ID` / `RP_ORIGIN`（WebAuthn用）と
-`frontend/.env` の `VITE_API_BASE_URL` を実際のドメインに合わせて更新してください。
-パスキーはHTTPSかつ`RP_ORIGIN`と実際のオリジンが一致していないと動作しません。
 
 ## 実装状況（MVP）
 
