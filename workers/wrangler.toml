@@ -20,9 +20,10 @@ id = "1f95dd096ef44d86859dd6a4d0c43d3c"
 # JWT_SECRET はここに書かず `wrangler secret put JWT_SECRET` で設定する。
 # ローカル開発では workers/.dev.vars (git管理外) に JWT_SECRET=... を置く。
 # Cloudflareダッシュボードでデプロイする場合は Settings > Variables and Secrets で設定する。
-ENVIRONMENT = "development"
+ENVIRONMENT = "production"
 # RP_ID / RP_ORIGIN は本番公開時、実際にアクセスするドメインに必ず合わせて変更すること
 # （WebAuthnはRP ID/Originの不一致があるとパスキーが一切機能しない）。
-RP_ID = "localhost"
+# 本番フロントエンド: Cloudflare Pages プロジェクト "sql-app"
+RP_ID = "sql-app.pages.dev"
 RP_NAME = "SQL学習アプリ"
-RP_ORIGIN = "http://localhost:5173"
+RP_ORIGIN = "https://sql-app.pages.dev"
