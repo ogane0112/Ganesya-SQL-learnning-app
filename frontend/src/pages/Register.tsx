@@ -3,6 +3,8 @@ import { useNavigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import { ApiError } from "../lib/api";
+import { Alert, Button, Field, Icon } from "../components/ui";
+import { AuthShell } from "./Login";
 
 export default function Register() {
   const { register, registerPasskey, passkeySupported } = useAuth();
@@ -45,81 +47,64 @@ export default function Register() {
 
   if (registered) {
     return (
-      <div className="mx-auto max-w-sm p-6">
-        <h1 className="text-xl font-bold">{t("register.completeTitle")}</h1>
-        <p className="mt-2 text-sm text-slate-600">{t("register.completeHint")}</p>
+      <AuthShell title={t("register.completeTitle")} subtitle={t("register.completeHint")}>
+        <div className="flex justify-center">
+          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+            <Icon name="check" size={28} />
+          </span>
+        </div>
         {passkeySupported && (
-          <div className="mt-4 rounded-lg border border-slate-200 p-4">
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
             <p className="text-sm text-slate-700">{t("register.passkeyPrompt")}</p>
-            <button
-              onClick={handleAddPasskey}
-              className="mt-2 min-h-[44px] w-full rounded-lg border border-blue-400 bg-blue-50 px-4 py-2 font-medium text-blue-700 hover:bg-blue-100"
-            >
+            <Button variant="secondary" className="mt-3 w-full" onClick={handleAddPasskey}>
               {t("register.addPasskeyButton")}
-            </button>
+            </Button>
             {passkeyMessage && (
               <p className="mt-2 text-sm text-slate-600">{passkeyMessage}</p>
             )}
           </div>
         )}
-        <button
-          onClick={() => navigate("/problems")}
-          className="mt-4 min-h-[44px] w-full rounded-lg bg-blue-600 px-4 py-2 font-medium text-white"
-        >
+        <Button className="w-full" onClick={() => navigate("/problems")}>
           {t("register.startLearning")}
-        </button>
-      </div>
+          <Icon name="play" size={16} />
+        </Button>
+      </AuthShell>
     );
   }
 
   return (
-    <div className="mx-auto max-w-sm p-6">
-      <h1 className="text-xl font-bold">{t("register.title")}</h1>
-      <form onSubmit={handleSubmit} className="mt-4 space-y-3">
-        <div>
-          <label htmlFor="register-email" className="block text-sm font-medium text-slate-700">
-            {t("register.emailLabel")}
-          </label>
-          <input
-            id="register-email"
-            type="email"
-            required
-            autoComplete="username"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 w-full rounded border border-slate-300 px-3 py-2"
-          />
-        </div>
-        <div>
-          <label htmlFor="register-password" className="block text-sm font-medium text-slate-700">
-            {t("register.passwordLabel")}
-          </label>
-          <input
-            id="register-password"
-            type="password"
-            required
-            minLength={8}
-            autoComplete="new-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 w-full rounded border border-slate-300 px-3 py-2"
-          />
-        </div>
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        <button
-          type="submit"
-          disabled={submitting}
-          className="min-h-[44px] w-full rounded-lg bg-blue-600 px-4 py-2 font-medium text-white disabled:opacity-50"
-        >
+    <AuthShell title={t("register.title")} subtitle={t("register.subtitle")}>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Field
+          id="register-email"
+          label={t("register.emailLabel")}
+          type="email"
+          required
+          autoComplete="username"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <Field
+          id="register-password"
+          label={t("register.passwordLabel")}
+          type="password"
+          required
+          minLength={8}
+          autoComplete="new-password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        {error && <Alert tone="danger">{error}</Alert>}
+        <Button type="submit" disabled={submitting} className="w-full">
           {t("register.submit")}
-        </button>
+        </Button>
       </form>
-      <p className="mt-4 text-sm text-slate-600">
+      <p className="mt-6 text-center text-sm text-slate-600">
         {t("register.haveAccount")}{" "}
-        <Link to="/login" className="text-blue-600 underline">
+        <Link to="/login" className="focus-ring rounded font-medium text-blue-600 hover:underline">
           {t("register.loginLink")}
         </Link>
       </p>
-    </div>
+    </AuthShell>
   );
 }

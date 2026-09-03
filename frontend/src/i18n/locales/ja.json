@@ -1,6 +1,7 @@
 {
   "app": {
-    "name": "SQL学習アプリ"
+    "name": "SQL学習アプリ",
+    "tagline": "書いて、動かして、身につける"
   },
   "nav": {
     "problems": "問題一覧",
@@ -13,12 +14,30 @@
     "en": "English"
   },
   "home": {
+    "eyebrow": "ブラウザだけで完結するSQL練習",
     "title": "SQL学習アプリ",
     "description": "ブラウザ上でSQLを書いて、その場で実行しながら学べます。入力したSQLはあなたのブラウザ内だけで実行され、サーバーには送信されません。",
-    "cta": "問題を解いてみる"
+    "cta": "問題を解いてみる",
+    "secondaryCta": "ログインして進捗を保存",
+    "features": {
+      "instant": {
+        "title": "その場で実行",
+        "body": "Ctrl+Enter で即座に結果が返ります。試行錯誤のテンポを止めません。"
+      },
+      "private": {
+        "title": "データは手元だけ",
+        "body": "SQLite がブラウザ内で動きます。書いたSQLがサーバーへ送られることはありません。"
+      },
+      "guided": {
+        "title": "つまずいたらヒント",
+        "body": "段階的なヒントと解説つき。答えを見る前に、自分で考える余地を残します。"
+      }
+    }
   },
   "problemList": {
     "title": "問題一覧",
+    "subtitle": "基礎のSELECTから集計・結合まで、順番に進めましょう。",
+    "progressLabel": "学習の進捗",
     "solvedCount": "{{solved}} / {{total}} 問 正解済み",
     "difficulty": "難易度",
     "status": {
@@ -30,12 +49,20 @@
   "problemSolve": {
     "backToList": "← 問題一覧",
     "notFound": "問題が見つかりませんでした。",
+    "statementHeading": "問題",
     "editorHeading": "SQLエディタ",
+    "editorFile": "query.sql",
+    "editorLoading": "エディタを読み込み中…",
+    "preparing": "問題データを準備中…",
     "run": "実行 (Ctrl/Cmd+Enter)",
     "resultHeading": "実行結果",
     "schemaHeading": "テーブル定義",
+    "showDdl": "CREATE 文を表示",
+    "columnsCount": "{{count}} 列",
+    "rowsCount": "{{count}} 行",
     "correct": "✅ 正解です！",
     "incorrect": "❌ 不正解です。もう一度試してみましょう。",
+    "correctNext": "次の問題へ進む",
     "unexpectedError": "予期しないエラーが発生しました。",
     "tabs": {
       "editor": "エディタ",
@@ -46,6 +73,7 @@
       "heading": "ヒント ({{revealed}}/{{total}})",
       "next": "次のヒントを見る",
       "showAnswer": "答え・解説を見る",
+      "suggest": "3回不正解でした。ヒントや解説を見てみましょう。",
       "sampleAnswerLabel": "模範解答:"
     }
   },
@@ -60,7 +88,9 @@
   },
   "login": {
     "title": "ログイン",
+    "subtitle": "進捗をアカウントに保存して、どのデバイスからでも続きから学べます。",
     "passkeyButton": "🔐 パスキーでログイン",
+    "or": "または",
     "emailLabel": "メールアドレス",
     "passwordLabel": "パスワード",
     "submit": "ログイン",
@@ -72,6 +102,7 @@
   },
   "register": {
     "title": "新規登録",
+    "subtitle": "メールアドレスとパスワードだけで始められます。",
     "emailLabel": "メールアドレス",
     "passwordLabel": "パスワード（8文字以上）",
     "passwordTooShort": "パスワードは8文字以上で入力してください。",

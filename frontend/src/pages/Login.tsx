@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import { ApiError } from "../lib/api";
+import { Alert, Button, Card, Field } from "../components/ui";
 
 /**
  * ID+パスワードを常時の主導線とし、パスキーは対応ブラウザにのみ
@@ -43,68 +44,85 @@ export default function Login() {
   };
 
   return (
-    <div className="mx-auto max-w-sm p-6">
-      <h1 className="text-xl font-bold">{t("login.title")}</h1>
-
+    <AuthShell title={t("login.title")} subtitle={t("login.subtitle")}>
       {passkeySupported && (
-        <button
-          onClick={handlePasskeyLogin}
-          className="mt-4 min-h-[44px] w-full rounded-lg border border-blue-400 bg-blue-50 px-4 py-2 font-medium text-blue-700 hover:bg-blue-100"
-        >
-          {t("login.passkeyButton")}
-        </button>
+        <>
+          <Button variant="secondary" className="w-full" onClick={handlePasskeyLogin}>
+            {t("login.passkeyButton")}
+          </Button>
+          <Divider label={t("login.or")} />
+        </>
       )}
 
-      <form onSubmit={handleSubmit} className="mt-4 space-y-3">
-        <div>
-          <label htmlFor="login-email" className="block text-sm font-medium text-slate-700">
-            {t("login.emailLabel")}
-          </label>
-          <input
-            id="login-email"
-            type="email"
-            required
-            autoComplete="username webauthn"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 w-full rounded border border-slate-300 px-3 py-2"
-          />
-        </div>
-        <div>
-          <label htmlFor="login-password" className="block text-sm font-medium text-slate-700">
-            {t("login.passwordLabel")}
-          </label>
-          <input
-            id="login-password"
-            type="password"
-            required
-            autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 w-full rounded border border-slate-300 px-3 py-2"
-          />
-        </div>
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        <button
-          type="submit"
-          disabled={submitting}
-          className="min-h-[44px] w-full rounded-lg bg-blue-600 px-4 py-2 font-medium text-white disabled:opacity-50"
-        >
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Field
+          id="login-email"
+          label={t("login.emailLabel")}
+          type="email"
+          required
+          autoComplete="username webauthn"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <Field
+          id="login-password"
+          label={t("login.passwordLabel")}
+          type="password"
+          required
+          autoComplete="current-password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        {error && <Alert tone="danger">{error}</Alert>}
+        <Button type="submit" disabled={submitting} className="w-full">
           {t("login.submit")}
-        </button>
+        </Button>
       </form>
 
-      <p className="mt-4 text-sm text-slate-600">
+      <p className="mt-6 text-center text-sm text-slate-600">
         {t("login.noAccount")}{" "}
-        <Link to="/register" className="text-blue-600 underline">
+        <Link to="/register" className="focus-ring rounded font-medium text-blue-600 hover:underline">
           {t("login.registerLink")}
         </Link>
       </p>
-      <p className="mt-2 text-sm">
-        <Link to="/problems" className="text-slate-500 underline">
+      <p className="mt-2 text-center text-sm">
+        <Link to="/problems" className="focus-ring rounded text-slate-500 hover:text-slate-700 hover:underline">
           {t("login.continueWithoutLogin")}
         </Link>
       </p>
+    </AuthShell>
+  );
+}
+
+/** Shared frame for login / register so the two screens are visibly siblings. */
+export function AuthShell({
+  title,
+  subtitle,
+  children,
+}: {
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="mx-auto max-w-md px-4 py-10 sm:px-6 sm:py-16">
+      <div className="mb-6 text-center">
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900">{title}</h1>
+        {subtitle && <p className="mt-2 text-sm text-slate-600">{subtitle}</p>}
+      </div>
+      <Card className="p-6 sm:p-8">
+        <div className="space-y-4">{children}</div>
+      </Card>
+    </div>
+  );
+}
+
+export function Divider({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-3 text-xs uppercase tracking-wide text-slate-400">
+      <span className="h-px flex-1 bg-slate-200" />
+      {label}
+      <span className="h-px flex-1 bg-slate-200" />
     </div>
   );
 }

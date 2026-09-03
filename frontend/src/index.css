@@ -1,28 +1,53 @@
 @import "tailwindcss";
 
+/*
+ * Design tokens
+ * ------------------------------------------------------------------
+ * One accent (blue-600) reserved for interactive / important things so users
+ * learn "blue = act here". Neutrals are slate. Semantic colors (emerald /
+ * amber / red) are used only for judgement feedback, never for decoration.
+ */
+@theme {
+  --font-sans:
+    "Inter", "Noto Sans JP", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, "Hiragino Sans", "Hiragino Kaku Gothic ProN",
+    "Yu Gothic", Meiryo, sans-serif;
+  --font-mono:
+    "JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular, Menlo,
+    Consolas, monospace;
+}
+
 :root {
   color-scheme: light;
 }
 
-html, body, #root {
+html,
+body,
+#root {
   height: 100%;
 }
 
 body {
-  @apply bg-slate-50 text-slate-900;
+  @apply bg-slate-50 font-sans text-slate-900 antialiased;
+  font-feature-settings: "cv11", "ss01", "tnum";
 }
 
-/* Ensure tap targets meet 44px guideline on touch devices (要件 9.7) */
-button, [role="button"], a.tap-target {
+/* Keyboard users always get the same blue focus ring, on every control. */
+@utility focus-ring {
+  @apply outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white;
+}
+
+/* Tap targets meet the 44px guideline on touch devices (要件 9.7). */
+button,
+[role="button"],
+a.tap-target,
+select {
   min-height: 44px;
-  min-width: 44px;
 }
 
-.cm-editor {
-  height: 100%;
-  font-size: 14px;
-}
-
-.cm-scroller {
-  overflow: auto;
+/* Monaco: match the popup widgets to the card radius of the rest of the UI. */
+.monaco-editor .suggest-widget,
+.monaco-editor .monaco-hover {
+  border-radius: 10px;
+  overflow: hidden;
 }

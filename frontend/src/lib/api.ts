@@ -1,4 +1,6 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "/api";
+// 空文字（.env に `VITE_API_BASE_URL=` だけ書かれている場合）も未設定として扱い、
+// vite.config.ts のプロキシ経由（/api）にフォールバックする。
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "/api";
 
 const TOKEN_KEY = "sql-app:token";
 

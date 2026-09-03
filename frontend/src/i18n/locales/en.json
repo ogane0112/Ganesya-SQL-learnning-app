@@ -1,6 +1,7 @@
 {
   "app": {
-    "name": "SQL Learning App"
+    "name": "SQL Learning App",
+    "tagline": "Write it. Run it. Learn it."
   },
   "nav": {
     "problems": "Problems",
@@ -13,12 +14,30 @@
     "en": "English"
   },
   "home": {
+    "eyebrow": "SQL practice that runs entirely in your browser",
     "title": "SQL Learning App",
     "description": "Write real SQL in your browser and run it instantly. Your SQL runs entirely on your own device — nothing is ever sent to a server.",
-    "cta": "Start solving problems"
+    "cta": "Start solving problems",
+    "secondaryCta": "Log in to save progress",
+    "features": {
+      "instant": {
+        "title": "Run instantly",
+        "body": "Ctrl+Enter and the result is right there. Nothing interrupts your trial-and-error loop."
+      },
+      "private": {
+        "title": "Your data stays local",
+        "body": "SQLite runs inside the browser. The SQL you write never leaves your device."
+      },
+      "guided": {
+        "title": "Hints when you're stuck",
+        "body": "Step-by-step hints and a full explanation — with room to think before you peek."
+      }
+    }
   },
   "problemList": {
     "title": "Problems",
+    "subtitle": "Work through them in order — from basic SELECTs to aggregation and joins.",
+    "progressLabel": "Your progress",
     "solvedCount": "{{solved}} / {{total}} solved",
     "difficulty": "Difficulty",
     "status": {
@@ -30,12 +49,20 @@
   "problemSolve": {
     "backToList": "← Problem list",
     "notFound": "Problem not found.",
+    "statementHeading": "Problem",
     "editorHeading": "SQL Editor",
+    "editorFile": "query.sql",
+    "editorLoading": "Loading editor…",
+    "preparing": "Preparing problem data…",
     "run": "Run (Ctrl/Cmd+Enter)",
     "resultHeading": "Result",
     "schemaHeading": "Table schema",
+    "showDdl": "Show CREATE statements",
+    "columnsCount": "{{count}} columns",
+    "rowsCount": "{{count}} rows",
     "correct": "✅ Correct!",
     "incorrect": "❌ Not quite right. Give it another try.",
+    "correctNext": "Next problem",
     "unexpectedError": "An unexpected error occurred.",
     "tabs": {
       "editor": "Editor",
@@ -46,6 +73,7 @@
       "heading": "Hints ({{revealed}}/{{total}})",
       "next": "Show next hint",
       "showAnswer": "Show answer & explanation",
+      "suggest": "Three incorrect attempts — try a hint or the explanation.",
       "sampleAnswerLabel": "Sample answer:"
     }
   },
@@ -60,7 +88,9 @@
   },
   "login": {
     "title": "Log in",
+    "subtitle": "Save your progress to an account and pick up where you left off on any device.",
     "passkeyButton": "🔐 Log in with a passkey",
+    "or": "or",
     "emailLabel": "Email address",
     "passwordLabel": "Password",
     "submit": "Log in",
@@ -72,6 +102,7 @@
   },
   "register": {
     "title": "Sign up",
+    "subtitle": "All you need is an email address and a password.",
     "emailLabel": "Email address",
     "passwordLabel": "Password (8+ characters)",
     "passwordTooShort": "Password must be at least 8 characters.",

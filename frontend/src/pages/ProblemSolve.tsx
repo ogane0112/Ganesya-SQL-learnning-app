@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import type { Database } from "sql.js";
-import { getProblemById } from "../data/problems";
+import { getProblemById, problems } from "../data/problems";
 import {
   createProblemDatabase,
   extractSchemaInfo,
@@ -15,11 +15,27 @@ import { recordProgress } from "../lib/progress";
 import { useLocale } from "../lib/useLocale";
 import { SqlEditor } from "../components/SqlEditor";
 import { ResultTable } from "../components/ResultTable";
+import {
+  Alert,
+  Badge,
+  Button,
+  ButtonLink,
+  Card,
+  CardHeader,
+  Icon,
+} from "../components/ui";
 
 type MobileTab = "editor" | "result" | "schema";
 
 const INCORRECT_ATTEMPTS_BEFORE_EXPLANATION = 3;
 
+/**
+ * Solve screen. Layout mirrors the workflow:
+ *   read the problem (top)  →  reference the schema (left)
+ *   →  write SQL (right, top)  →  see the result (right, below)
+ *   →  get help where the failure is shown (hints, under the result)
+ * On phones the same three regions become tabs (要件 9.7).
+ */
 export default function ProblemSolve() {
   const { id } = useParams<{ id: string }>();
   const problem = id ? getProblemById(id) : undefined;
@@ -52,6 +68,7 @@ export default function ProblemSolve() {
     setRevealedHints(0);
     setShowExplanation(false);
     setSqlText("");
+    setActiveTab("editor");
     if (!problem || !content) return;
     createProblemDatabase(problem.schemaSql, content.seedSql)
       .then((database) => {
@@ -73,19 +90,28 @@ export default function ProblemSolve() {
     };
   }, [db]);
 
-  const schema = useMemo(() => {
-    if (!db) return undefined;
-    const info = extractSchemaInfo(db);
-    return Object.fromEntries(info.map((t) => [t.table, t.columns]));
-  }, [db]);
+  const schemaInfo = useMemo(() => (db ? extractSchemaInfo(db) : []), [db]);
+  const schema = useMemo(
+    () =>
+      db
+        ? Object.fromEntries(schemaInfo.map((s) => [s.table, s.columns]))
+        : undefined,
+    [db, schemaInfo],
+  );
+
+  const problemIndex = problem ? problems.findIndex((p) => p.id === problem.id) : -1;
+  const nextProblem =
+    problemIndex >= 0 && problemIndex < problems.length - 1
+      ? problems[problemIndex + 1]
+      : undefined;
 
   if (!problem || !content) {
     return (
-      <div className="p-6">
-        <p>{t("problemSolve.notFound")}</p>
-        <Link to="/problems" className="text-blue-600 underline">
+      <div className="mx-auto max-w-2xl px-4 py-16 text-center">
+        <p className="text-slate-700">{t("problemSolve.notFound")}</p>
+        <ButtonLink to="/problems" variant="secondary" className="mt-4">
           {t("problemSolve.backToList")}
-        </Link>
+        </ButtonLink>
       </div>
     );
   }
@@ -133,24 +159,64 @@ export default function ProblemSolve() {
       .catch((err: Error) => setRunError(err.message));
   };
 
+  // The Run button lives in the editor toolbar — right next to the thing it
+  // acts on — and is the single primary action on this screen.
+  const runButton = (
+    <Button onClick={handleRun} disabled={!db}>
+      {db ? <Icon name="play" size={16} /> : <Icon name="spinner" size={16} />}
+      {t("problemSolve.run")}
+    </Button>
+  );
+
+  const suggestExplanation = incorrectCount >= INCORRECT_ATTEMPTS_BEFORE_EXPLANATION;
+
   return (
-    <div className="mx-auto flex h-full max-w-6xl flex-col gap-4 p-4">
+    <div className="mx-auto flex min-h-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6">
+      {/* Problem statement — always visible, on every viewport. */}
       <div>
-        <Link to="/problems" className="text-sm text-blue-600 underline">
+        <Link
+          to="/problems"
+          className="focus-ring inline-flex min-h-[36px] items-center gap-1 rounded-lg text-sm font-medium text-blue-600 hover:text-blue-700"
+        >
           {t("problemSolve.backToList")}
         </Link>
-        <h1 className="mt-1 text-xl font-bold">{content.title}</h1>
-        <p className="mt-1 whitespace-pre-wrap text-slate-700">
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <span className="font-mono text-xs text-slate-400">
+            #{String(problemIndex + 1).padStart(2, "0")}
+          </span>
+          <Badge tone="brand">{content.category}</Badge>
+          <span
+            className="inline-flex items-center gap-1.5 text-xs text-slate-500"
+            aria-label={`${t("problemList.difficulty")} ${problem.difficulty}/5`}
+          >
+            {t("problemList.difficulty")}
+            <span className="inline-flex gap-0.5">
+              {Array.from({ length: 5 }, (_, i) => (
+                <span
+                  key={i}
+                  className={`h-1.5 w-1.5 rounded-full ${
+                    i < problem.difficulty ? "bg-blue-600" : "bg-slate-200"
+                  }`}
+                />
+              ))}
+            </span>
+          </span>
+        </div>
+        <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900">
+          {content.title}
+        </h1>
+        <p className="mt-2 max-w-3xl whitespace-pre-wrap leading-relaxed text-slate-700">
           {content.description}
         </p>
       </div>
 
-      {dbError && (
-        <p className="rounded bg-red-50 p-3 text-red-700">{dbError}</p>
-      )}
+      {dbError && <Alert tone="danger">{dbError}</Alert>}
 
       {/* Mobile: tab switcher (要件9.7 タブ切り替え型レイアウト) */}
-      <div className="flex gap-1 md:hidden" role="tablist">
+      <div
+        className="flex gap-1 rounded-lg bg-slate-200/70 p-1 lg:hidden"
+        role="tablist"
+      >
         {(
           [
             ["editor", t("problemSolve.tabs.editor")],
@@ -160,13 +226,14 @@ export default function ProblemSolve() {
         ).map(([tab, label]) => (
           <button
             key={tab}
+            type="button"
             role="tab"
             aria-selected={activeTab === tab}
             onClick={() => setActiveTab(tab)}
-            className={`min-h-[44px] flex-1 rounded-t-md px-2 text-sm font-medium ${
+            className={`focus-ring min-h-[40px] flex-1 rounded-md px-2 text-sm font-medium transition-colors ${
               activeTab === tab
-                ? "bg-white text-blue-700 shadow"
-                : "bg-slate-200 text-slate-600"
+                ? "bg-white text-blue-700 shadow-sm"
+                : "text-slate-600 hover:text-slate-900"
             }`}
           >
             {label}
@@ -174,83 +241,164 @@ export default function ProblemSolve() {
         ))}
       </div>
 
-      <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 md:grid-cols-[2fr_2fr_1fr]">
-        <section
-          className={`min-h-[300px] flex-col md:flex ${activeTab === "editor" ? "flex" : "hidden md:flex"}`}
+      <div className="grid min-h-0 flex-1 grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+        {/* Reference column */}
+        <Card
+          className={`lg:sticky lg:top-6 lg:self-start ${
+            activeTab === "schema" ? "flex" : "hidden lg:flex"
+          }`}
         >
-          <div className="flex items-center justify-between pb-2">
-            <h2 className="font-semibold text-slate-700">
-              {t("problemSolve.editorHeading")}
-            </h2>
-            <button
-              onClick={handleRun}
-              disabled={!db}
-              className="min-h-[44px] rounded bg-blue-600 px-4 py-2 font-medium text-white shadow disabled:opacity-50"
-            >
-              {t("problemSolve.run")}
-            </button>
-          </div>
-          <div className="min-h-0 flex-1">
-            <SqlEditor value={sqlText} onChange={setSqlText} onRun={handleRun} schema={schema} />
-          </div>
-        </section>
-
-        <section
-          ref={resultPaneRef}
-          className={`min-h-[300px] flex-col md:flex ${activeTab === "result" ? "flex" : "hidden md:flex"}`}
-        >
-          <h2 className="pb-2 font-semibold text-slate-700">
-            {t("problemSolve.resultHeading")}
-          </h2>
-          {status !== "idle" && (
-            <div
-              className={`mb-2 rounded p-3 font-medium ${
-                status === "correct"
-                  ? "bg-green-50 text-green-700"
-                  : "bg-amber-50 text-amber-700"
-              }`}
-            >
-              {status === "correct"
-                ? t("problemSolve.correct")
-                : t("problemSolve.incorrect")}
-            </div>
-          )}
-          {runError && (
-            <div className="mb-2 rounded bg-red-50 p-3 text-red-700">
-              {runError}
-            </div>
-          )}
-          <div className="min-h-0 flex-1 overflow-auto rounded border border-slate-300 bg-white">
-            <ResultTable result={result} />
-          </div>
-
-          <HintsAndExplanation
-            hints={content.hints}
-            explanation={content.explanation}
-            sampleAnswer={content.sampleAnswer}
-            revealedHints={revealedHints}
-            onRevealHint={() => setRevealedHints((n) => n + 1)}
-            showExplanation={showExplanation}
-            onShowExplanation={() => setShowExplanation(true)}
-            suggestExplanation={incorrectCount >= INCORRECT_ATTEMPTS_BEFORE_EXPLANATION}
+          <CardHeader
+            title={t("problemSolve.schemaHeading")}
+            icon={<Icon name="table" size={18} />}
           />
-        </section>
+          <div className="divide-y divide-slate-100">
+            {schemaInfo.length === 0 ? (
+              <p className="flex items-center gap-2 p-4 text-sm text-slate-500">
+                <Icon name="spinner" size={16} />
+                {t("problemSolve.preparing")}
+              </p>
+            ) : (
+              schemaInfo.map(({ table, columns }) => (
+                <div key={table} className="p-4">
+                  <div className="flex items-baseline justify-between">
+                    <p className="font-mono text-sm font-semibold text-slate-900">{table}</p>
+                    <span className="text-xs text-slate-400">
+                      {t("problemSolve.columnsCount", { count: columns.length })}
+                    </span>
+                  </div>
+                  <ul className="mt-2 flex flex-wrap gap-1.5">
+                    {columns.map((col) => (
+                      <li
+                        key={col}
+                        className="rounded-md bg-slate-100 px-2 py-0.5 font-mono text-xs text-slate-700"
+                      >
+                        {col}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))
+            )}
+          </div>
+          <details className="group border-t border-slate-200">
+            <summary className="focus-ring flex min-h-[44px] cursor-pointer list-none items-center gap-1.5 px-4 text-sm text-slate-600 hover:bg-slate-50 [&::-webkit-details-marker]:hidden">
+              <Icon
+                name="chevronDown"
+                size={14}
+                className="transition-transform group-open:rotate-180"
+              />
+              {t("problemSolve.showDdl")}
+            </summary>
+            <pre className="overflow-auto border-t border-slate-100 bg-slate-50 p-4 font-mono text-xs leading-relaxed text-slate-700">
+              {problem.schemaSql.trim()}
+            </pre>
+          </details>
+        </Card>
 
-        <section
-          className={`min-h-[200px] flex-col md:flex ${activeTab === "schema" ? "flex" : "hidden md:flex"}`}
-        >
-          <h2 className="pb-2 font-semibold text-slate-700">
-            {t("problemSolve.schemaHeading")}
-          </h2>
-          <pre className="min-h-0 flex-1 overflow-auto rounded border border-slate-300 bg-white p-3 text-xs">
-            {problem.schemaSql.trim()}
-          </pre>
-        </section>
+        {/* Work column */}
+        <div className="flex min-h-0 flex-col gap-6">
+          <Card
+            className={`min-h-[360px] ${
+              activeTab === "editor" ? "flex" : "hidden lg:flex"
+            }`}
+          >
+            <CardHeader
+              title={
+                <span className="inline-flex items-center gap-2">
+                  {t("problemSolve.editorHeading")}
+                  <kbd className="hidden rounded border border-slate-200 bg-white px-1.5 py-0.5 font-mono text-[10px] font-normal text-slate-500 lg:inline">
+                    Ctrl/⌘ + ⏎
+                  </kbd>
+                </span>
+              }
+              icon={<Icon name="database" size={18} />}
+              actions={runButton}
+            />
+            <div className="min-h-0 flex-1">
+              <SqlEditor
+                value={sqlText}
+                onChange={setSqlText}
+                onRun={handleRun}
+                schema={schema}
+              />
+            </div>
+          </Card>
+
+          <Card
+            ref={resultPaneRef}
+            className={`min-h-[280px] scroll-mt-4 ${
+              activeTab === "result" ? "flex" : "hidden lg:flex"
+            }`}
+          >
+            <CardHeader
+              title={t("problemSolve.resultHeading")}
+              icon={<Icon name="database" size={18} />}
+              actions={
+                result && result.columns.length > 0 ? (
+                  <span className="text-xs text-slate-500">
+                    {t("problemSolve.rowsCount", { count: result.rows.length })}
+                  </span>
+                ) : undefined
+              }
+            />
+            {(status !== "idle" || runError) && (
+              <div className="space-y-2 border-b border-slate-200 p-3">
+                {status === "correct" && (
+                  <Alert tone="success">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="font-medium">{t("problemSolve.correct")}</span>
+                      {nextProblem && (
+                        <ButtonLink
+                          to={`/problems/${nextProblem.id}`}
+                          size="sm"
+                          className="bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800"
+                        >
+                          {t("problemSolve.correctNext")}
+                          <Icon name="chevronLeft" size={14} className="rotate-180" />
+                        </ButtonLink>
+                      )}
+                    </div>
+                  </Alert>
+                )}
+                {status === "incorrect" && !runError && (
+                  <Alert tone="warning">
+                    <span className="font-medium">{t("problemSolve.incorrect")}</span>
+                  </Alert>
+                )}
+                {runError && (
+                  <Alert tone="danger">
+                    <code className="font-mono text-xs">{runError}</code>
+                  </Alert>
+                )}
+              </div>
+            )}
+            <div className="min-h-0 flex-1 overflow-auto">
+              <ResultTable result={result} />
+            </div>
+            <HintsAndExplanation
+              hints={content.hints}
+              explanation={content.explanation}
+              sampleAnswer={content.sampleAnswer}
+              revealedHints={revealedHints}
+              onRevealHint={() => setRevealedHints((n) => n + 1)}
+              showExplanation={showExplanation}
+              onShowExplanation={() => setShowExplanation(true)}
+              suggestExplanation={suggestExplanation}
+            />
+          </Card>
+        </div>
       </div>
     </div>
   );
 }
 
+/**
+ * Help lives directly under the result: the moment a user sees "incorrect"
+ * is the moment they want a hint. Hints are revealed one at a time and the
+ * answer is a deliberately quieter, secondary action — until three misses,
+ * when it's promoted so nobody stays stuck.
+ */
 function HintsAndExplanation({
   hints,
   explanation,
@@ -271,51 +419,58 @@ function HintsAndExplanation({
   suggestExplanation: boolean;
 }) {
   const { t } = useTranslation();
+  const shown = hints.slice(0, revealedHints);
   return (
-    <div className="mt-3 border-t border-slate-200 pt-3">
+    <div className="border-t border-slate-200 bg-slate-50/60 p-4">
       <div className="flex flex-wrap items-center gap-2">
-        <h3 className="text-sm font-semibold text-slate-700">
+        <h3 className="mr-auto inline-flex items-center gap-1.5 text-sm font-semibold text-slate-700">
+          <Icon name="lightbulb" size={16} className="text-amber-500" />
           {t("problemSolve.hints.heading", {
             revealed: revealedHints,
             total: hints.length,
           })}
         </h3>
         {revealedHints < hints.length && (
-          <button
-            onClick={onRevealHint}
-            className="min-h-[36px] rounded border border-blue-300 px-3 text-sm text-blue-700 hover:bg-blue-50"
-          >
+          <Button variant="secondary" size="sm" onClick={onRevealHint}>
             {t("problemSolve.hints.next")}
-          </button>
+          </Button>
         )}
         {!showExplanation && (
-          <button
+          <Button
+            variant={suggestExplanation ? "primary" : "ghost"}
+            size="sm"
             onClick={onShowExplanation}
-            className={`min-h-[36px] rounded px-3 text-sm ${
-              suggestExplanation
-                ? "bg-amber-500 text-white"
-                : "border border-slate-300 text-slate-600 hover:bg-slate-50"
-            }`}
           >
             {t("problemSolve.hints.showAnswer")}
-          </button>
+          </Button>
         )}
       </div>
-      {hints.slice(0, revealedHints).length > 0 && (
-        <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-slate-700">
-          {hints.slice(0, revealedHints).map((h, i) => (
-            <li key={i}>{h}</li>
-          ))}
-        </ul>
+
+      {suggestExplanation && !showExplanation && (
+        <p className="mt-2 text-xs text-slate-600">{t("problemSolve.hints.suggest")}</p>
       )}
+
+      {shown.length > 0 && (
+        <ol className="mt-3 space-y-2">
+          {shown.map((h, i) => (
+            <li key={i} className="flex gap-2.5 text-sm text-slate-700">
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-100 font-mono text-[11px] font-semibold text-amber-700">
+                {i + 1}
+              </span>
+              <span className="leading-relaxed">{h}</span>
+            </li>
+          ))}
+        </ol>
+      )}
+
       {showExplanation && (
-        <div className="mt-2 space-y-2 rounded bg-slate-50 p-3 text-sm">
-          <p className="whitespace-pre-wrap text-slate-700">{explanation}</p>
+        <div className="mt-3 space-y-3 rounded-lg border border-slate-200 bg-white p-4 text-sm">
+          <p className="whitespace-pre-wrap leading-relaxed text-slate-700">{explanation}</p>
           <div>
-            <p className="mb-1 font-medium text-slate-600">
+            <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500">
               {t("problemSolve.hints.sampleAnswerLabel")}
             </p>
-            <pre className="overflow-auto rounded bg-slate-800 p-2 text-xs text-slate-100">
+            <pre className="overflow-auto rounded-lg bg-slate-900 p-3 font-mono text-xs leading-relaxed text-slate-100">
               {sampleAnswer}
             </pre>
           </div>
